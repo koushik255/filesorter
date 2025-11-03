@@ -1,0 +1,1 @@
+what if it was a program which sorted your file system for you, like your .xyz would be put into specific folders
