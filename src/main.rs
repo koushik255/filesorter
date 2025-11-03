@@ -32,6 +32,7 @@ fn main() {
                 .as_ref()
                 .unwrap(),
             first_op.to_string(),
+            false,
         );
     }
 
@@ -40,6 +41,9 @@ fn main() {
 // ok so whats the plan first il make that into a funct
 // i also need to make sure this does not touch any programming stuff so add restrictions to like
 // only mp4 or pdf .txt etc etc
+// now i need it to crawl into directorys and check that out
+// first collect the dirs
+// then send to function which takes the dirs and walks thorugh each directory
 
 fn dir_list(path: &str, dir_path: PathBuf) {
     let mut entries = read_dir(path)
@@ -139,20 +143,32 @@ fn dir_list(path: &str, dir_path: PathBuf) {
     }
 }
 
-fn dir_list_one(path: &str, extention: String) {
-    let mut entries = read_dir(path)
-        .unwrap()
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
-    entries.sort();
+fn dir_list_one(path: &str, extention: String, dir: bool) -> Vec<FilePlus> {
+    // let mut entries = read_dir(path)
+    //     .unwrap()
+    //     .map(|res| res.map(|e| e.path()))
+    //     .collect::<Result<Vec<_>, _>>()
+    //     .unwrap();
+    // entries.sort();
+
+    let mut udo: Vec<PathBuf> = Vec::new();
+    if let Some(entieti) = read_dir(path).ok() {
+        udo = entieti
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+
+        udo.sort();
+    }
 
     let this_exention = extention.clone();
     let mut dirs = HashMap::new();
     let mut files = HashMap::new();
     let mut i = 0;
     let mut ifile = 0;
-    entries.iter().for_each(|f| {
+
+    // swtiching entires for udo
+    udo.iter().for_each(|f| {
         if f.is_dir() {
             // println!("this a dir yp {:?}", f);
             dirs.insert(f, i);
@@ -183,7 +199,7 @@ fn dir_list_one(path: &str, extention: String) {
             let wtbr = match didwa.clone() {
                 Some(t) => t,
                 None => {
-                    println!("ndada");
+                    //println!("ndada");
                     "nada".to_string()
                 }
             };
@@ -215,16 +231,68 @@ fn dir_list_one(path: &str, extention: String) {
             }
         }
     }
-    for this in all_this {
-        println!(
-            "file {}, into the folder {}",
-            this.full_path.display(),
-            this.extenstion
-        );
+    if dir == false {
+        for this in all_this.clone() {
+            println!(
+                "o file {}, into the folder {}",
+                this.full_path.display(),
+                this.extenstion
+            );
+        }
+    } else {
+        for this in all_this.clone() {
+            //let yeap = this.full_path.file_name().is_some();
+
+            if this.full_path.file_name().is_some() {
+                println!(
+                    "m file {}, folder {}",
+                    this.full_path
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .into_owned(),
+                    this.extenstion
+                );
+            }
+            //println!("m file {},folder{}", yeap, this.extenstion);
+        }
     }
+
+    let mut more = walk_dir(dirs, this_exention);
+    more.sort();
+    for m in more {
+        println!("m file {},folder {}", m.full_path.display(), m.extenstion);
+    }
+
+    all_this
 }
 
-#[derive(Clone)]
+fn walk_dir(vec: HashMap<&PathBuf, i32>, ext: String) -> Vec<FilePlus> {
+    let dirs = vec;
+    let mut togeth: Vec<FilePlus> = Vec::new();
+    // should i do a check first to see if the folder has mkv in it?
+    // if the dir contains extension then were we add that to a list and then we would
+    // only iter through the ones we know have them instead of everything,
+    // im running read_dir the same amount of times tho.. i would be runing it more acuallty
+
+    for dir in dirs.into_keys() {
+        //println!("Dir {}", dir.display());
+        //println!("{}", ext);
+        let mut files = dir_list_one(
+            dir.as_os_str().to_owned().into_string().as_ref().unwrap(),
+            ext.clone(),
+            true,
+        );
+        files.sort();
+        for file in files {
+            togeth.push(file);
+        }
+    }
+    // ok so i il just run thourgh the dirs and then i can just all the choose one function on each dir right?
+    togeth
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct FilePlus {
     full_path: PathBuf,
     extenstion: String,
