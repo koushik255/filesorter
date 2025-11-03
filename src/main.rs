@@ -255,14 +255,22 @@ fn dir_list_one(path: &str, extention: String, dir: bool) -> Vec<FilePlus> {
                 );
             }
             //println!("m file {},folder{}", yeap, this.extenstion);
+
+            //let mut more = walk_dir(dirs.clone(), this_exention.clone());
+            //more.sort();
         }
+
+        // let mut more = walk_dir(dirs, this_exention);
+        // more.sort();
     }
 
-    let mut more = walk_dir(dirs, this_exention);
-    more.sort();
-    for m in more {
-        println!("m file {},folder {}", m.full_path.display(), m.extenstion);
+    if !dir {
+        let mut more = walk_dir(dirs, this_exention);
+        more.sort();
     }
+    // for m in more {
+    //     println!("m file {},folder {}", m.full_path.display(), m.extenstion);
+    // }
 
     all_this
 }
@@ -278,12 +286,12 @@ fn walk_dir(vec: HashMap<&PathBuf, i32>, ext: String) -> Vec<FilePlus> {
     for dir in dirs.into_keys() {
         //println!("Dir {}", dir.display());
         //println!("{}", ext);
-        let mut files = dir_list_one(
+        let files = dir_list_one(
             dir.as_os_str().to_owned().into_string().as_ref().unwrap(),
             ext.clone(),
             true,
         );
-        files.sort();
+        // files.sort();
         for file in files {
             togeth.push(file);
         }
