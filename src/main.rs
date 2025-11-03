@@ -1,19 +1,18 @@
 use std::{
     collections::HashMap,
-    ffi::{OsStr, OsString},
     fs::{read_dir, rename},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 
 use clap::{Arg, command};
 
 fn main() {
-    let matches = command!().arg(Arg::new("dir")).get_matches();
+    let matches = command!().arg(Arg::new("first")).get_matches();
 
     //let dir_path = PathBuf::from("/home/koushikk/Documents/Rust2/clapnew/");
     let dir_path = PathBuf::from("/home/koushikk/Downloads/");
 
-    let first_op = matches.get_one::<String>("dir").unwrap();
+    let first_op = matches.get_one::<String>("first").unwrap();
     if first_op == &"dir".to_string() {
         dir_list(
             dir_path
@@ -23,6 +22,16 @@ fn main() {
                 .as_ref()
                 .unwrap(),
             dir_path,
+        );
+    } else {
+        dir_list_one(
+            dir_path
+                .as_os_str()
+                .to_owned()
+                .into_string()
+                .as_ref()
+                .unwrap(),
+            first_op.to_string(),
         );
     }
 
@@ -40,7 +49,7 @@ fn dir_list(path: &str, dir_path: PathBuf) {
         .unwrap();
     entries.sort();
 
-    let dir_path2 = dir_path.clone();
+    let _dir_path2 = dir_path.clone();
     let mut dirs = HashMap::new();
     let mut files = HashMap::new();
 
@@ -51,8 +60,8 @@ fn dir_list(path: &str, dir_path: PathBuf) {
         if f.is_dir() {
             // println!("this a dir yp {:?}", f);
             dirs.insert(f, i);
-            let fp = PathBuf::from(f);
-            println!("file stem {:?}", fp.extension());
+            //let fp = PathBuf::from(f);
+            //println!("file stem {:?}", fp.extension());
             i += 1;
         } else {
             files.insert(f, ifile);
@@ -61,20 +70,12 @@ fn dir_list(path: &str, dir_path: PathBuf) {
         }
     });
 
-    // println!("DIRS HASH {:?}\n", dirs);
-    dirs.iter().for_each(|f| {
-        println!("Dirs Hash {:?}", f);
-    });
     //let files_clone = files.i.map(|(e, _)| e.to_owned().to_owned());
     let files_clone: Vec<PathBuf> = files
         .iter()
         .filter_map(|(f, _)| Some(f.to_owned().to_owned()))
         .by_ref()
         .collect();
-
-    for file in &files_clone {
-        println!("files clone {}", file.display());
-    }
     let mut files_extenstion_unique = HashMap::new();
     let mut suf2: Vec<_> = files
         .iter()
@@ -94,86 +95,131 @@ fn dir_list(path: &str, dir_path: PathBuf) {
         })
         .collect();
 
-    println!("FILES HASH {:?}\n", files);
+    //println!("FILES HASH {:?}\n", files);
     suf2.sort();
-    let (fupes, dutes, fp) = check_dupes_comp(&files_clone);
-    println!("FUPES {:?} DUES {:?}", fupes, dutes,);
+    let (_fupes, _dutes, fp) = check_dupes_comp(&files_clone);
 
-    for bob in &fp {
-        println!(
-            "Full path {}, Extension {}",
-            bob.full_path.display(),
-            bob.extenstion
-        );
-    }
-
-    let (dupes, trues) = check_dupes(&suf2);
-    println!("DUPes {:?} TRUES {:?}", dupes, trues);
-
-    // ok so i could do it so take each file ending then
-    // loop over the files to check for that ending and put that into a vec
-    println!("make folder for Dupes{:?}", dupes);
     let mut all_mp4s = Vec::new();
-
-    // cfor ext in files_extenstion_unique.into_keys() {
-    //     let wda = ext;
-    //     let  =
-    // }
-    // so basically if the file extension is in the files then create a vec and hold all the
-    // files of that type in it
+    let mut all_pdfs = Vec::new();
 
     for full in fp {
-        println!("going into {} Folder", full.extenstion);
+        //println!("going into {} Folder", full.extenstion);
 
         for s in files_extenstion_unique.clone().into_keys() {
             if *s == full.extenstion {
                 if full.extenstion.ends_with("mp4") {
                     all_mp4s.push(full.clone());
                 }
+                if full.extenstion.ends_with("pdf") {
+                    all_pdfs.push(full.clone());
+                }
 
                 println!(
-                    "Putting file {} into the .{} Folder",
-                    full.full_path.display(),
+                    "Folder {},File {} ",
                     full.extenstion,
+                    full.full_path.display(),
                 );
             }
         }
     }
-
-    // for tr in trues {
-    //     // println!("making folder for {}", tr);
-    //     for s in &suf2 {
-    //         // println!("s from inside true {}", s);
-    //         if *s == tr {
-    //             println!("putting File {} into the .{} Folder", s, tr);
-    //         }
-    //     }
-    // }
-
-    // for dt in dutes {
-    //     for s in &suf2 {
-    //         let path_extension = dt
-    //             .clone()
-    //             .into_boxed_path()
-    //             .extension()
-    //             .unwrap()
-    //             .to_string_lossy()
-    //             .into_owned();
-    //         if *s == *path_extension {
-    //             println!("putting file {} into the .{} folder ", dt.display(), s);
-    //         }
-    //     }
-    // }
-
-    // println!("{:?}", suf2);
-
-    // println!("{:?}", files_extenstion_unique);
-
     for mp4 in all_mp4s {
         println!(
             "Mp4 file {}, into the folder {}",
             mp4.full_path.display(),
             mp4.extenstion
+        );
+    }
+
+    for pdf in all_pdfs {
+        println!(
+            " PDF File {}, into the Folder {}",
+            pdf.full_path.display(),
+            pdf.extenstion
+        );
+    }
+}
+
+fn dir_list_one(path: &str, extention: String) {
+    let mut entries = read_dir(path)
+        .unwrap()
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+    entries.sort();
+
+    let this_exention = extention.clone();
+    let mut dirs = HashMap::new();
+    let mut files = HashMap::new();
+    let mut i = 0;
+    let mut ifile = 0;
+    entries.iter().for_each(|f| {
+        if f.is_dir() {
+            // println!("this a dir yp {:?}", f);
+            dirs.insert(f, i);
+            //let fp = PathBuf::from(f);
+            //println!("file stem {:?}", fp.extension());
+            i += 1;
+        } else {
+            files.insert(f, ifile);
+            // println!("files {:?}", f);
+            ifile += 1;
+        }
+    });
+
+    //let files_clone = files.i.map(|(e, _)| e.to_owned().to_owned());
+    let mut files_clone: Vec<PathBuf> = files
+        .iter()
+        .filter_map(|(f, _)| Some(f.to_owned().to_owned()))
+        .by_ref()
+        .collect();
+    files_clone.sort();
+    let mut files_extenstion_unique = HashMap::new();
+    let mut suf2: Vec<_> = files
+        .iter()
+        .filter_map(|(f, _)| {
+            let didwa = f
+                .extension()
+                .map(|e| e.to_os_string().into_string().unwrap());
+            let wtbr = match didwa.clone() {
+                Some(t) => t,
+                None => {
+                    println!("ndada");
+                    "nada".to_string()
+                }
+            };
+            files_extenstion_unique.insert(wtbr.clone(), 0);
+            didwa
+        })
+        .collect();
+
+    //println!("FILES HASH {:?}\n", files);
+    suf2.sort();
+    let (_fupes, _dutes, fp) = check_dupes_comp(&files_clone);
+
+    let mut all_this = Vec::new();
+
+    for full in fp {
+        //println!("going into {} Folder", full.extenstion);
+
+        for s in files_extenstion_unique.clone().into_keys() {
+            if *s == full.extenstion {
+                if full.extenstion.ends_with(&this_exention) {
+                    all_this.push(full.clone());
+                }
+
+                // println!(
+                //     "Folder {},File {} ",
+                //     full.extenstion,
+                //     full.full_path.display(),
+                // );
+            }
+        }
+    }
+    for this in all_this {
+        println!(
+            "file {}, into the folder {}",
+            this.full_path.display(),
+            this.extenstion
         );
     }
 }
@@ -224,7 +270,7 @@ where
     let mut fp_vec = Vec::new();
     for file in vec {
         let path = PathBuf::from(file.to_owned().clone());
-        println!("{}", path.display());
+        //println!("{}", path.display());
 
         let extention = match path.extension() {
             Some(e) => e.to_string_lossy().into_owned(),
@@ -235,11 +281,11 @@ where
             full_path: path.clone(),
             extenstion: extention,
         };
-        println!(
-            "FILES PLUS {} EXTENSTION{:?}",
-            f.full_path.display(),
-            f.extenstion
-        );
+        // println!(
+        //     "FILES PLUS {} EXTENSTION{:?}",
+        //     f.full_path.display(),
+        //     f.extenstion
+        // );
         fp_vec.push(f);
     }
 
