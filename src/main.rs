@@ -1,12 +1,13 @@
-use std::{
-    collections::HashMap,
-    fs::{read_dir, rename},
-    path::PathBuf,
-};
+use std::fs::read_dir;
+use std::time::Instant;
+use std::{collections::HashMap, fs::rename, path::PathBuf};
 
 use clap::{Arg, command};
+#[tokio::main]
+async fn main() {
+    let start = Instant::now();
+    println!("Starting timer at {:?}", start);
 
-fn main() {
     let matches = command!().arg(Arg::new("first")).get_matches();
 
     //let dir_path = PathBuf::from("/home/koushikk/Documents/Rust2/clapnew/");
@@ -35,6 +36,8 @@ fn main() {
             false,
         );
     }
+    let duration = start.elapsed();
+    println!("Done it took {:?}", duration);
 
     // println!("dir: {:?}", matches.get_one::<String>("dir"));
 }
@@ -44,7 +47,6 @@ fn main() {
 // now i need it to crawl into directorys and check that out
 // first collect the dirs
 // then send to function which takes the dirs and walks thorugh each directory
-
 fn dir_list(path: &str, dir_path: PathBuf) {
     let mut entries = read_dir(path)
         .unwrap()
@@ -160,6 +162,23 @@ fn dir_list_one(path: &str, extention: String, dir: bool) -> Vec<FilePlus> {
 
         udo.sort();
     }
+    // let path2 = path.to_owned();
+
+    // let udo: Vec<PathBuf> = task::spawn_blocking(move || {
+    //     let mut entries: Vec<PathBuf> = read_dir(&path2)
+    //         .ok()
+    //         .unwrap()
+    //         .map(|res| res.map(|e| e.path()))
+    //         .collect::<Result<Vec<_>, _>>()
+    //         .expect("errbud");
+
+    //     entries.sort();
+    //     entries
+    // })
+    // .await
+    // .expect("spawn blcoking task panic");
+
+    //println!("udo: {:?}", udo);
 
     let this_exention = extention.clone();
     let mut dirs = HashMap::new();
@@ -234,7 +253,7 @@ fn dir_list_one(path: &str, extention: String, dir: bool) -> Vec<FilePlus> {
     if dir == false {
         for this in all_this.clone() {
             println!(
-                "o file {}, into the folder {}",
+                "o file {},folder{}",
                 this.full_path.display(),
                 this.extenstion
             );
@@ -274,7 +293,6 @@ fn dir_list_one(path: &str, extention: String, dir: bool) -> Vec<FilePlus> {
 
     all_this
 }
-
 fn walk_dir(vec: HashMap<&PathBuf, i32>, ext: String) -> Vec<FilePlus> {
     let dirs = vec;
     let mut togeth: Vec<FilePlus> = Vec::new();
@@ -291,6 +309,7 @@ fn walk_dir(vec: HashMap<&PathBuf, i32>, ext: String) -> Vec<FilePlus> {
             ext.clone(),
             true,
         );
+
         // files.sort();
         for file in files {
             togeth.push(file);
