@@ -1,1 +1,3 @@
-what if it was a program which sorted your file system for you, like your .xyz would be put into specific folders
+i want to make it basically ls blud but i need to make it i can run it from my path basically
+also later make it so i can copy certain text to clipboard, i could just keep the program alive for a couple sec 
+if like -c flag is passed 

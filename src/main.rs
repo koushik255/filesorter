@@ -11,8 +11,8 @@ async fn main() {
     let matches = command!().arg(Arg::new("first")).get_matches();
 
     //let dir_path = PathBuf::from("/home/koushikk/Documents/Rust2/clapnew/");
-    let dir_path = PathBuf::from("/home/koushikk/Downloads/");
-
+    //let dir_path = PathBuf::from("/home/koushikk/Downloads/");
+    let dir_path = PathBuf::from(".");
     let first_op = matches.get_one::<String>("first").unwrap();
     if first_op == &"dir".to_string() {
         dir_list(
@@ -109,8 +109,6 @@ fn dir_list(path: &str, dir_path: PathBuf) {
     let mut all_pdfs = Vec::new();
 
     for full in fp {
-        //println!("going into {} Folder", full.extenstion);
-
         for s in files_extenstion_unique.clone().into_keys() {
             if *s == full.extenstion {
                 if full.extenstion.ends_with("mp4") {
